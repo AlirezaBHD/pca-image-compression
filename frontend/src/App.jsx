@@ -7,7 +7,9 @@ import {
 } from './components/icons/Icons';
 import './App.css';
 
+// --- Components ---
 
+// کامپوننت لودینگ تمام صفحه جدید
 const LoadingOverlay = () => (
     <motion.div
         initial={{ opacity: 0 }}
@@ -25,12 +27,14 @@ const LoadingOverlay = () => (
 );
 
 const Card = ({ children, className = "" }) => (
+    // تغییر ارتفاع برای موبایل: h-auto در موبایل، ارتفاع ثابت در دسکتاپ
     <div className={`bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6 shadow-xl min-h-[340px] h-auto lg:h-[340px] flex flex-col ${className}`}>
         {children}
     </div>
 );
 
 const ImageCard = ({ title, image, loading, placeholderText, badgeColor = "bg-black/50", footerNode }) => (
+    // تغییر استایل برای جلوگیری از بهم ریختگی در موبایل
     <div className="bg-black/30 backdrop-blur-md border border-white/5 rounded-2xl overflow-hidden min-h-[340px] h-auto lg:h-[340px] relative flex flex-col">
         <div className={`absolute top-3 left-3 px-3 py-1 rounded-full text-[10px] font-bold tracking-widest z-10 ${badgeColor}`}>
             {title}
@@ -38,6 +42,7 @@ const ImageCard = ({ title, image, loading, placeholderText, badgeColor = "bg-bl
 
         <div className="flex-grow p-4 w-full flex items-center justify-center overflow-hidden min-h-[200px]">
             {loading ? (
+                // لودینگ کوچک داخل کارت (اگر لودینگ اصلی نبود استفاده میشد، ولی الان نگهش میداریم برای زیبایی)
                 <div className="flex flex-col items-center opacity-50">
                     <ImageIcon className="animate-pulse" />
                 </div>
