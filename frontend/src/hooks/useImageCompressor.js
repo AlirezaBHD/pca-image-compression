@@ -29,7 +29,6 @@ export const useImageCompressor = () => {
     const handleFileSelect = (file) => {
         if (!file) return;
 
-        // Revoke old URL to avoid memory leaks
         if (state.originalImage) URL.revokeObjectURL(state.originalImage);
         if (state.compressedImage) URL.revokeObjectURL(state.compressedImage);
 
