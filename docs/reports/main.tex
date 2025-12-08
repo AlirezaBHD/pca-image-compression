@@ -1,0 +1,213 @@
+\documentclass[12pt]{article}
+\usepackage{amsmath,amssymb}
+\usepackage{geometry}
+\usepackage{caption}
+\usepackage{subcaption}
+\geometry{margin=1in}
+
+\title{Complete Mathematical Formulation of PCA for RGB Image Compression}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+
+\section*{Notation recap}
+Let \(m\) and \(n\) denote the image height and width, respectively.
+We use the following conventions for matrices and vectors:
+\[
+I \in \mathbb{R}^{m\times n\times 3}
+\]
+is the original RGB image tensor; the third dimension indexes the color channels.
+For a matrix \(X\in\mathbb{R}^{m\times n}\), \(X_{:,j}\) denotes its \(j\)-th column and \(\mathbf{1}_n\in\mathbb{R}^n\) denotes the all-ones column vector.
+Superscripts and subscripts such as \((k)\), \(\widehat{\cdot}\), and \(\widetilde{\cdot}\) are used as described below.
+
+\section*{1. Image representation}
+Let the input RGB image be represented as a tensor
+\[
+I \in \mathbb{R}^{m \times n \times 3},
+\]
+where the three channels correspond to Red, Green and Blue.
+
+\section*{2. Normalization}
+Define the maximum pixel intensity
+\[
+M = \max_{1\le i\le m,\;1\le j\le n,\;1\le c\le 3} I_{i,j,c}.
+\]
+The normalized image is
+\[
+\tilde{I}_{i,j,c} = \frac{I_{i,j,c}}{M},
+ ,
+\]
+or compactly \(\tilde{I} = \tfrac{1}{M} I\).
+
+\section*{3. Channel extraction}
+Extract the three color-channel matrices:
+\[
+B = \tilde{I}(:,:,1),\qquad
+G = \tilde{I}(:,:,2),\qquad
+R = \tilde{I}(:,:,3),
+\]
+i.e.
+\[
+B_{i,j}=\tilde{I}_{i,j,1},\quad
+G_{i,j}=\tilde{I}_{i,j,2},\quad
+R_{i,j}=\tilde{I}_{i,j,3}.
+\]
+Each of \(R,G,B\) is in \(\mathbb{R}^{m\times n}\).
+
+\section*{4. Mean centering}
+For a general channel matrix \(X\in\{R,G,B\}\) define the column mean
+\[
+\mu_X = \frac{1}{n}\sum_{j=1}^n X_{:,j} \in \mathbb{R}^{m}.
+\]
+Define the centered matrix
+\[
+\widehat{X}_{:,j} = X_{:,j} - \mu_X,
+\]
+so that
+\[
+\widehat{R},\ \widehat{G},\ \widehat{B}\in\mathbb{R}^{m\times n}
+\]
+are the centered channel matrices.
+
+\section*{5. Covariance matrices}
+For any centered channel \(\widehat{X}\) the sample covariance matrix (columns as observations) is
+\[
+\Sigma_X = \frac{1}{n-1}\,\widehat{X}\,\widehat{X}^\top \in \mathbb{R}^{m\times m}.
+\]
+Hence
+\[
+\Sigma_R=\frac{1}{n-1}\widehat{R}\widehat{R}^\top,\quad
+\Sigma_G=\frac{1}{n-1}\widehat{G}\widehat{G}^\top,\quad
+\Sigma_B=\frac{1}{n-1}\widehat{B}\widehat{B}^\top.
+\]
+
+\section*{6. Eigenvalue decomposition}
+For each channel compute the eigen-decomposition:
+\[
+\Sigma_R V_R = V_R \Lambda_R,\qquad
+\Sigma_G V_G = V_G \Lambda_G,\qquad
+\Sigma_B V_B = V_B \Lambda_B,
+\]
+where \(\Lambda_R=\operatorname{diag}(\lambda_{R,1},\dots,\lambda_{R,m})\) (similarly for \(\Lambda_G,\Lambda_B\)) and the columns of \(V_R,V_G,V_B\) are the corresponding eigenvectors \(v_{R,i},v_{G,i},v_{B,i}\).
+
+\section*{7. Sorting eigenvalues and eigenvectors}
+Sort eigenvalues in descending order and reorder eigenvectors accordingly. Denote the sorted eigenvalues by
+\[
+\lambda_{R,(1)}\ge\lambda_{R,(2)}\ge\cdots\ge\lambda_{R,(m)}
+\]
+and let \(\pi_R\) be the permutation satisfying \(\lambda_{R,(k)}=\lambda_{R,\pi_R(k)}\).
+Define sorted eigenvectors
+\[
+v_{R,(k)}=v_{R,\pi_R(k)},
+\qquad
+V_R^{(\mathrm{sorted})}=\big[v_{R,(1)},v_{R,(2)},\dots,v_{R,(m)}\big].
+\]
+Similarly define \(V_G^{(\mathrm{sorted})},V_B^{(\mathrm{sorted})}\).
+From now on we use \(V_R,V_G,V_B\) to denote the sorted-eigenvector matrices for brevity.
+
+\section*{8. Select top-\(k\) principal components}
+For a given \(k\) with \(1\le k\le m\) define the top-\(k\) eigenvector matrices
+\[
+V_{R,k}=\big[v_{R,(1)},\dots,v_{R,(k)}\big]\in\mathbb{R}^{m\times k},
+\]
+and analogously \(V_{G,k},V_{B,k}\in\mathbb{R}^{m\times k}.\)
+
+\section*{9. Projection (dimensionality reduction)}
+Project the centered channel data onto the \(k\)-dimensional subspace:
+\[
+C_R^{(k)} = V_{R,k}^\top \widehat{R} \in \mathbb{R}^{k\times n},
+\qquad
+C_G^{(k)} = V_{G,k}^\top \widehat{G},
+\qquad
+C_B^{(k)} = V_{B,k}^\top \widehat{B}.
+\]
+
+\section*{10. Inverse transformation (reconstruction)}
+Reconstruct the centered channels from reduced coordinates:
+\[
+\widehat{R}^{(k)} = V_{R,k} C_R^{(k)} = V_{R,k} V_{R,k}^\top \widehat{R} \in \mathbb{R}^{m\times n},
+\]
+\[
+\widehat{G}^{(k)} = V_{G,k} C_G^{(k)} = V_{G,k} V_{G,k}^\top \widehat{G},
+\]
+\[
+\widehat{B}^{(k)} = V_{B,k} C_B^{(k)} = V_{B,k} V_{B,k}^\top \widehat{B}.
+\]
+Add the column means back to obtain reconstructed (non-centered) channels:
+\[
+\widetilde{R}^{(k)} = \widehat{R}^{(k)} + \mu_R \mathbf{1}_n^\top,
+\qquad
+\widetilde{G}^{(k)} = \widehat{G}^{(k)} + \mu_G \mathbf{1}_n^\top,
+\qquad
+\widetilde{B}^{(k)} = \widehat{B}^{(k)} + \mu_B \mathbf{1}_n^\top.
+\]
+
+\section*{11. Combine reconstructed channels into RGB image}
+Stack the reconstructed channels to form the rank-\(k\) reconstructed image:
+\[
+\widetilde{I}^{(k)}=\operatorname{stack}\big(\widetilde{B}^{(k)},\widetilde{G}^{(k)},\widetilde{R}^{(k)}\big)\in\mathbb{R}^{m\times n\times 3},
+\]
+
+\section*{12. Processing multiple values of \(k\) (visualization loop)}
+Let
+\[
+\mathcal{K}=\{10,20,50,100,500,1400\}.
+\]
+For each \(k\in\mathcal{K}\) perform:
+\begin{enumerate}
+  \item Select \(V_{R,k},V_{G,k},V_{B,k}\).
+  \item Compute \(C_R^{(k)},C_G^{(k)},C_B^{(k)}\).
+  \item Form \(\widehat{R}^{(k)},\widehat{G}^{(k)},\widehat{B}^{(k)}\).
+  \item Add means to obtain \(\widetilde{R}^{(k)},\widetilde{G}^{(k)},\widetilde{B}^{(k)}\).
+  \item Stack to obtain \(\widetilde{I}^{(k)}\) and display as a subplot.
+\end{enumerate}
+
+\section*{13. Shapes and dimension checks}
+\[
+V_{R,k}\in\mathbb{R}^{m\times k},\quad \widehat{R}\in\mathbb{R}^{m\times n}
+\quad\Rightarrow\quad
+C_R^{(k)}=V_{R,k}^\top\widehat{R}\in\mathbb{R}^{k\times n},
+\]
+\[
+\widehat{R}^{(k)}=V_{R,k}C_R^{(k)}\in\mathbb{R}^{m\times n}.
+\]
+Analogous relations hold for \(G\) and \(B\).
+
+\section*{14. Optional: Variance interpretation and reconstruction error}
+Let \(\{\lambda_{(i)}\}_{i=1}^m\) be the sorted eigenvalues of a channel covariance matrix.
+Total variance:
+\[
+\mathrm{Var}_{\text{total}}=\sum_{i=1}^m \lambda_{(i)}.
+\]
+Variance captured by first \(k\):
+\[
+\mathrm{Var}_k=\sum_{i=1}^k \lambda_{(i)}.
+\]
+Fraction of variance explained (FVE):
+\[
+\mathrm{FVE}(k)=\frac{\mathrm{Var}_k}{\mathrm{Var}_{\text{total}}}.
+\]
+When covariance uses the factor \(\tfrac{1}{n-1}\), the squared Frobenius reconstruction error satisfies
+\[
+\big\lVert \widehat{R}-\widehat{R}^{(k)} \big\rVert_F^2 = (n-1)\sum_{i=k+1}^m \lambda_{(i)}.
+\]
+
+\section*{15. Compact mathematical pseudocode}
+For each \(k\in\mathcal{K}\):
+\[
+\begin{aligned}
+&V_{*,k}\leftarrow\text{first }k\text{ columns of }V_*,\\[2pt]
+&C_*^{(k)}\leftarrow V_{*,k}^\top\widehat{*},\\[2pt]
+&\widehat{*}^{(k)}\leftarrow V_{*,k}C_*^{(k)},\\[2pt]
+&\widetilde{*}^{(k)}\leftarrow \widehat{*}^{(k)}+\mu_*\mathbf{1}_n^\top,\\[2pt]
+&\widetilde{I}^{(k)}\leftarrow\operatorname{stack}(\widetilde{B}^{(k)},\widetilde{G}^{(k)},\widetilde{R}^{(k)}),
+\end{aligned}
+\]
+where ``\(*\)'' stands for each color channel \(R,G,B\).
+
+\bigskip
+\noindent This document unifies the normalization, channel extraction, covariance computation, eigen-decomposition, top-\(k\) selection, projection, reconstruction and visualization steps into a single.
+
+\end{document}
