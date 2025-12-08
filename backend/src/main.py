@@ -6,7 +6,7 @@ from PIL import Image
 import io
 import os
 import logging
-import gunicorn
+
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
